@@ -11,7 +11,16 @@ library(flexdashboard)
 library(ggeasy)
 library(ggthemes)
 
-
+# Path where data is
+file_path <- "multiTimeline.csv"
+# Data starts in 3rd row, skip first 2 rows
+g_trends <- read.csv(file_path, skip = 2)
+# Rename columns
+names(g_trends) <- c("Month", "Interest")
+# Convert Month to date
+g_trends$Month <- yearmonth(g_trends$Month)
+# Convert to tsibble
+g_trends <- tsibble(g_trends)
 
 
 ui <-
@@ -47,8 +56,10 @@ ui <-
                      
                      # Second tab content
                      tabItem(tabName = "graph1",
-                             h1("Full-Time Series Graph")
-          
+                             h1("Full-Time Series Graph"),
+                             basicPage(
+                               plotlyOutput("fulltimeseries")
+                             )
                      ), 
                      
                      # Third tab content
@@ -74,7 +85,17 @@ ui <-
 
 
 server <- function(input, output, session) {
-  
+  output$fulltimeseries <- renderPlotly({
+    p <- ggplot(g_trends, aes(Month, Interest)) + 
+      geom_line(color = "#22afff") + 
+      theme_fivethirtyeight()+
+      labs(title = "The Interest of 'Tennessee Lady Vols'", y = "Interest") +
+      ggeasy::easy_center_title() +
+      ggeasy::easy_all_text_color(color = "#ff8200") +
+      theme(plot.background = element_rect(fill = "white"), 
+            panel.background = element_rect(fill = "white"))
+    ggplotly(p)
+  })
 }
 shinyApp(ui, server)
 
