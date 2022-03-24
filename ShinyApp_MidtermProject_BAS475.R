@@ -50,13 +50,44 @@ ui <-
                    tabItems(
                      # First tab content
                      tabItem(tabName = "intro",
-                             h1("Introduction")
+                             h1("Introduction"), 
+                             
+                             hr(),
+                             
+                             tags$div(
+                               tags$h3("This application analyzes the interest in 
+                                      'Tennessee Lady Vols' from data collected by 
+                                      GoogleTrends."),
+                               
+                               tags$head(tags$style('h3 {color:#FF8200;}')),
+                               
+                               tags$br(),
+                               
+                               tags$h3("The second tab displays the Full-Time Series graphic for the interest in 'Tennessee Lady Vols' from January 2004 to March 2022."),
+                             
+                               tags$br(),
+                               
+                               tags$h3("The third tab displays your choice in one of three types of graphics: (1) seasonality, (2) autocorrelation, and (3) decomposition. "),
+                               
+                               tags$br(),
+                               
+                               tags$h3("The fourth tab displays something."),
+                               
+                               tags$br(),
+                               
+                               ),
+                             div(img(src = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Tennessee_Lady_Volunteers_logo.svg/1200px-Tennessee_Lady_Volunteers_logo.svg.png",
+                                     height = 200, width = 200),
+                                 style="text-align: center;")
                 
                      ),
                      
                      # Second tab content
                      tabItem(tabName = "graph1",
                              h1("Full-Time Series Graph"),
+                             
+                             hr(),
+                             
                              basicPage(
                                plotlyOutput("fulltimeseries")
                              )
@@ -78,9 +109,8 @@ ui <-
                    )  
                    
                  )
-  )
 
-
+       )
 
 
 
