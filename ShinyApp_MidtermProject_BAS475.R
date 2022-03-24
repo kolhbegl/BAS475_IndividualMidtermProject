@@ -8,8 +8,11 @@ library(dplyr)
 library(shinydashboard)
 library(tidyquant)
 library(flexdashboard)
+library(feasts)
 library(ggeasy)
 library(ggthemes)
+library(seasonal)
+library(seasonalview)
 
 # Path where data is
 file_path <- "multiTimeline.csv"
@@ -95,7 +98,17 @@ ui <-
                      
                      # Third tab content
                      tabItem(tabName = "graph2",
-                             h1("Graphic of Your Choice") 
+                             h1("Graphic of Your Choice"), 
+                             
+                             plotlyOutput("season"),
+                             
+                             hr(),
+                             
+                             plotOutput("auto"),
+                             
+                             hr(),
+                             
+                             plotOutput("decomp")
                      ),
                      
                      # Fourth tab content
@@ -125,6 +138,32 @@ server <- function(input, output, session) {
       theme(plot.background = element_rect(fill = "white"), 
             panel.background = element_rect(fill = "white"))
     ggplotly(p)
+  })
+  output$season <- renderPlotly({
+    p <-  g_trends %>% gg_season(Interest)+
+      theme_fivethirtyeight()+
+      labs(title = "The Interest of 'Tennessee Lady Vols'", y = "Interest") +
+      ggeasy::easy_center_title() +
+      ggeasy::easy_all_text_color(color = "#ff8200") +
+      theme(plot.background = element_rect(fill = "white"), 
+            panel.background = element_rect(fill = "white"))
+    ggplotly(p)
+  })
+  output$auto <- renderPlot({
+    g_trends %>% ACF() %>% 
+      autoplot()+
+      labs(title = "Interest of Tennessee Lady Vols")+
+      ggeasy::easy_center_title()+
+      ggeasy::easy_all_text_colour(colour = "#FF8200")
+  })
+  output$decomp <- renderPlot({
+    x11_dcmp <- g_trends %>%
+      model(x11 = X_13ARIMA_SEATS(Interest ~ x11())) %>%
+      components()
+    autoplot(x11_dcmp) +
+      labs(title = "Decomposition of Interest of \"Tennessee Lady 
+           Vols\" using X-11.")
+    
   })
 }
 shinyApp(ui, server)
