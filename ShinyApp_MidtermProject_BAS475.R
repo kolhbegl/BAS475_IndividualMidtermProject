@@ -110,7 +110,13 @@ ui <-
                              
                              hr(),
                              
-                             plotOutput("myplot")
+                             plotOutput("myplot"),
+                             
+                             hr(),
+                             
+                             h3("Interpretation"),
+                             
+                             textOutput("myplotint")
                         
                      ),
                      
@@ -176,6 +182,32 @@ server <- function(input, output, session) {
     }
   })
   
+  output$myplotint <- renderText({
+    if (input$plot_type == "Seasonality") {
+      noquote(paste(c("The seasonality plot shows that the interest 
+      in \"Tennessee Lady Vols\" peaks from January until April and 
+      again from November to December. This makes logical sense 
+      because this coincides with basketball season. Also of note is 
+      that June is particularly high for most of the summer months.
+      This is likely due to the conclusion of softball season. The
+      highest amount of interest seems to coincide with Tennessee's
+      last two women's basketball national championships in 2007 and 
+      2008.", 
+      collapse = " ")))
+    } 
+    else if (input$plot_type == "Autocorrelation") {
+      noquote(paste(c("The autocorrelation plot shows that the 
+      interest in \"Tennessee Lady Vols\" is extremely seasonal. This
+      is likely due to basketball season and softball season. 
+      This is especially the case for seasons that these two teams
+      experience success.", collapse = " ")))
+    }
+    else if (input$plot_type == "Decomposition") {
+      noquote(paste(c("The X11 decomposition plot shows that the trend
+      peaked in about 2008. The plot also shows a consistent amount
+      of seasonality.", collapse = " ")))
+    }
+  })
 }
 shinyApp(ui, server)
 
