@@ -28,7 +28,7 @@ g_trends <- tsibble(g_trends)
 
 ui <-
   dashboardPage( skin = "yellow",
-                 dashboardHeader(title = "Title", titleWidth = 200),
+                 dashboardHeader(title = "Interest in \"Tennessee Lady Vols\"", titleWidth = 500),
                  dashboardSidebar( width = 200,
                                    sidebarMenu(
                                      menuItem("Introduction", tabName = "intro", 
@@ -59,14 +59,14 @@ ui <-
                              
                              tags$div(
                                tags$h3("This application analyzes the interest in 
-                                      'Tennessee Lady Vols' from data collected by 
+                                      \"Tennessee Lady Vols\" from data collected by 
                                       GoogleTrends."),
                                
                                tags$head(tags$style('h3 {color:#FF8200;}')),
                                
                                tags$br(),
                                
-                               tags$h3("The second tab displays the Full-Time Series graphic for the interest in 'Tennessee Lady Vols' from January 2004 to March 2022."),
+                               tags$h3("The second tab displays the Full-Time Series graphic for the interest in \"Tennessee Lady Vols\" from January 2004 to March 2022."),
                              
                                tags$br(),
                                
@@ -100,15 +100,18 @@ ui <-
                      tabItem(tabName = "graph2",
                              h1("Graphic of Your Choice"), 
                              
-                             plotlyOutput("season"),
+                             hr(),
+                             
+                             radioButtons("plot_type", 
+                                          label = h2("Which plot do you want to see?"),
+                                          choices = c("Seasonality", 
+                                                      "Autocorrelation", 
+                                                      "Decomposition")),
                              
                              hr(),
                              
-                             plotOutput("auto"),
-                             
-                             hr(),
-                             
-                             plotOutput("decomp")
+                             plotOutput("myplot")
+                        
                      ),
                      
                      # Fourth tab content
@@ -132,39 +135,47 @@ server <- function(input, output, session) {
     p <- ggplot(g_trends, aes(Month, Interest)) + 
       geom_line(color = "#22afff") + 
       theme_fivethirtyeight()+
-      labs(title = "The Interest of 'Tennessee Lady Vols'", y = "Interest") +
+      labs(title = "The Interest of \"Tennessee Lady Vols\"", y = "Interest") +
       ggeasy::easy_center_title() +
       ggeasy::easy_all_text_color(color = "#ff8200") +
       theme(plot.background = element_rect(fill = "white"), 
             panel.background = element_rect(fill = "white"))
     ggplotly(p)
   })
-  output$season <- renderPlotly({
-    p <-  g_trends %>% gg_season(Interest)+
-      theme_fivethirtyeight()+
-      labs(title = "The Interest of 'Tennessee Lady Vols'", y = "Interest") +
-      ggeasy::easy_center_title() +
-      ggeasy::easy_all_text_color(color = "#ff8200") +
-      theme(plot.background = element_rect(fill = "white"), 
-            panel.background = element_rect(fill = "white"))
-    ggplotly(p)
+  
+  output$myplot <- renderPlot({
+    if (input$plot_type == "Seasonality") {
+      g_trends %>% gg_season(Interest)+
+        theme_fivethirtyeight()+
+        labs(title = "The Interest of \"Tennessee Lady Vols\"", y = "Interest") +
+        ggeasy::easy_center_title() +
+        ggeasy::easy_all_text_color(color = "#ff8200") +
+        theme(plot.background = element_rect(fill = "white"), 
+              panel.background = element_rect(fill = "white"))
+    } 
+    else if (input$plot_type == "Autocorrelation") {
+      g_trends %>% ACF() %>% 
+        autoplot()+
+        labs(title = "Interest of Tennessee Lady Vols")+
+        ggeasy::easy_center_title()+
+        ggeasy::easy_all_text_colour(colour = "#FF8200")+
+        theme(plot.background = element_rect(fill = "white"), 
+              panel.background = element_rect(fill = "white"))
+    }
+    else if (input$plot_type == "Decomposition") {
+      x11_dcmp <- g_trends %>%
+        model(x11 = X_13ARIMA_SEATS(Interest ~ x11())) %>%
+        components()
+      autoplot(x11_dcmp) +
+        labs(title = "Decomposition of Interest of \"Tennessee Lady 
+           Vols\" using X-11.")+
+        ggeasy::easy_center_title()+
+        ggeasy::easy_all_text_colour(colour = "#FF8200")+
+        theme(plot.background = element_rect(fill = "white"), 
+              panel.background = element_rect(fill = "white"))
+    }
   })
-  output$auto <- renderPlot({
-    g_trends %>% ACF() %>% 
-      autoplot()+
-      labs(title = "Interest of Tennessee Lady Vols")+
-      ggeasy::easy_center_title()+
-      ggeasy::easy_all_text_colour(colour = "#FF8200")
-  })
-  output$decomp <- renderPlot({
-    x11_dcmp <- g_trends %>%
-      model(x11 = X_13ARIMA_SEATS(Interest ~ x11())) %>%
-      components()
-    autoplot(x11_dcmp) +
-      labs(title = "Decomposition of Interest of \"Tennessee Lady 
-           Vols\" using X-11.")
-    
-  })
+  
 }
 shinyApp(ui, server)
 
