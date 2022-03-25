@@ -93,7 +93,20 @@ ui <-
                              
                              basicPage(
                                plotlyOutput("fulltimeseries")
-                             )
+                             ),
+                             
+                             hr(),
+                             
+                             h3("Interpretation"),
+                             
+                             h4("The full-time series shows a trend that was 
+                                relatively increasing from 2004-2008.The trend
+                                then appears to be decreasing from about
+                                2009-2017. The trend then appears to increase 
+                                from 2018-2022. There appears to be strong
+                                seasonality throughtout the plot. This is 
+                                likely due to basketball season.")
+                             
                      ), 
                      
                      # Third tab content
