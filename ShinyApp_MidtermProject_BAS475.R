@@ -67,22 +67,22 @@ ui <-
                                tags$br(),
                                
                                tags$h3("The second tab displays the Full-Time Series graphic for the interest in \"Tennessee Lady Vols\" from January 2004 to March 2022."),
-                             
+                               
                                tags$br(),
                                
                                tags$h3("The third tab displays your choice in one of three types of graphics: (1) seasonality, (2) autocorrelation, and (3) decomposition. "),
                                
                                tags$br(),
                                
-                               tags$h3("The fourth tab displays something."),
+                               tags$h3("The fourth tab displays your choice in of three types of forecasts: (1) Mean, (2) Naïve, and (3) Seasonal Naïve."),
                                
                                tags$br(),
                                
-                               ),
+                             ),
                              div(img(src = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Tennessee_Lady_Volunteers_logo.svg/1200px-Tennessee_Lady_Volunteers_logo.svg.png",
                                      height = 200, width = 200),
                                  style="text-align: center;")
-                
+                             
                      ),
                      
                      # Second tab content
@@ -116,7 +116,7 @@ ui <-
                              hr(),
                              
                              radioButtons("plot_type", 
-                                          label = h2("Which plot do you want to see?"),
+                                          label = h3("Which plot do you want to see?"),
                                           choices = c("Seasonality", 
                                                       "Autocorrelation", 
                                                       "Decomposition")),
@@ -130,12 +130,25 @@ ui <-
                              h3("Interpretation"),
                              
                              textOutput("myplotint")
-                        
+                             
                      ),
                      
                      # Fourth tab content
                      tabItem(tabName = "feature",
-                             h2("My Feature")
+                             h1("Forecast of Your Choice"),
+                             
+                             hr(),
+                             
+                             radioButtons("forecast_type", 
+                                          label = h3("Which type of forecast do you want to see?"),
+                                          choices = c("Mean", 
+                                                      "Naïve", 
+                                                      "Seasonal Naïve")),
+                             
+                             hr(),
+                             
+                             
+                             plotOutput("forecast")
                              
                              
                              
@@ -144,8 +157,8 @@ ui <-
                    )  
                    
                  )
-
-       )
+                 
+  )
 
 
 
@@ -206,7 +219,7 @@ server <- function(input, output, session) {
       highest amount of interest seems to coincide with Tennessee's
       last two women's basketball national championships in 2007 and 
       2008.", 
-      collapse = " ")))
+                      collapse = " ")))
     } 
     else if (input$plot_type == "Autocorrelation") {
       noquote(paste(c("The autocorrelation plot shows that the 
@@ -220,12 +233,77 @@ server <- function(input, output, session) {
       peaked in about 2008. The plot also shows a consistent amount
       of seasonality.", collapse = " ")))
     }
+    
+    
+  })
+  
+  output$forecast <- renderPlot({
+    if(input$forecast_type == "Mean") {
+    interest_fit <- g_trends %>%
+      model(
+        Mean = MEAN(Interest)
+      )
+    
+    interest_fc <- interest_fit %>% forecast(h = 15)
+    
+    interest_fc %>%
+      autoplot(g_trends, level = NULL) +
+      autolayer(
+        filter_index(g_trends, "2004 Jan" ~ .),
+        colour = "#ff8200"
+      ) +
+      labs( y = "Interest",
+            title = "Mean Forecast for interest in \"Tennessee Lady Vols\""
+      ) + 
+      guides(colour = guide_legend(title = "Forecast"))+
+      ggeasy::easy_center_title()+
+      ggeasy::easy_all_text_color(color = "#22afff")
+    }
+    else if(input$forecast_type == "Naïve") {
+      interest_fit <- g_trends %>%
+        model(`Naïve` = NAIVE(Interest)
+        )
+      
+      interest_fc <- interest_fit %>% forecast(h = 15)
+      
+      interest_fc %>%
+        autoplot(g_trends, level = NULL) +
+        autolayer(
+          filter_index(g_trends, "2004 Jan" ~ .),
+          colour = "#ff8200"
+        ) +
+        labs( y = "Interest",
+              title = "Naïve Forecast for interest in \"Tennessee Lady Vols\""
+        ) + 
+        guides(colour = guide_legend(title = "Forecast"))+
+        ggeasy::easy_center_title()+
+        ggeasy::easy_all_text_color(color = "#22afff")
+    }
+    
+    else if(input$forecast_type == "Seasonal Naïve") {
+      interest_fit <- g_trends %>%
+        model(`Seasonal naïve` = SNAIVE(Interest)
+        )
+      
+      interest_fc <- interest_fit %>% forecast(h = 15)
+      
+      interest_fc %>%
+        autoplot(g_trends, level = NULL) +
+        autolayer(
+          filter_index(g_trends, "2004 Jan" ~ .),
+          colour = "#ff8200"
+        ) +
+        labs( y = "Interest",
+              title = "Seasonal Naïve Forecast for interest in \"Tennessee Lady Vols\""
+        ) + 
+        guides(colour = guide_legend(title = "Forecast"))+
+        ggeasy::easy_center_title()+
+        ggeasy::easy_all_text_color(color = "#22afff")
+    }
+    
   })
   
   
   
 }
 shinyApp(ui, server)
-
-
-
