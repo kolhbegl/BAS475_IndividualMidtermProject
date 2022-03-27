@@ -74,7 +74,7 @@ ui <-
                                
                                tags$br(),
                                
-                               tags$h3("The fourth tab displays your choice in of three types of forecasts: (1) Mean, (2) Naïve, and (3) Seasonal Naïve."),
+                               tags$h3("The fourth tab displays your choice in one of three types of forecasts: (1) Mean, (2) Naïve, and (3) Seasonal Naïve."),
                                
                                tags$br(),
                                
