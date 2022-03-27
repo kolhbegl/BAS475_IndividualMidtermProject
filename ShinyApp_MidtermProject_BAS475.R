@@ -221,6 +221,9 @@ server <- function(input, output, session) {
       of seasonality.", collapse = " ")))
     }
   })
+  
+  
+  
 }
 shinyApp(ui, server)
 
