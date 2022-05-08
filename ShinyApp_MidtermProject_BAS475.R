@@ -37,8 +37,10 @@ ui <-
                                               icon = icon("chart-line")),
                                      menuItem("Plot Choice", tabName = "graph2", 
                                               icon = icon("chart-line")),
-                                     menuItem("My Feature", tabName = "feature", 
-                                              icon = icon("chart-line"))
+                                     menuItem("Simple Models", tabName = "SimpleModels", 
+                                              icon = icon("chart-line")),
+                                     menuItem("Exponential Smoothing", tabName = "ETSmodels", 
+                                                       icon = icon("chart-line"))
                                    )
                  ),
                  dashboardBody(
@@ -74,9 +76,15 @@ ui <-
                                
                                tags$br(),
                                
-                               tags$h3("The fourth tab displays your choice in one of three types of forecasts: (1) Mean, (2) Naïve, and (3) Seasonal Naïve."),
+                               tags$h3("The fourth tab displays your choice in one of four types of simple model forecasts:"),
+                               tags$h3("(1) Mean, (2) Naïve, (3) Seasonal Naïve, and (4) Drift"),
                                
                                tags$br(),
+                               
+                               tags$h3("The fifth tab displays your choice in one of two types of Exponential Smoothing forecasts: "),
+                               tags$h3("(1) Holts or (2) Holts/Winters"),
+                               
+                               tags$br()
                                
                              ),
                              div(img(src = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Tennessee_Lady_Volunteers_logo.svg/1200px-Tennessee_Lady_Volunteers_logo.svg.png",
@@ -134,21 +142,22 @@ ui <-
                      ),
                      
                      # Fourth tab content
-                     tabItem(tabName = "feature",
+                     tabItem(tabName = "SimpleModels",
                              h1("Forecast of Your Choice"),
                              
                              hr(),
                              
-                             radioButtons("forecast_type", 
+                             radioButtons("forecast_simpletype", 
                                           label = h3("Which type of forecast do you want to see?"),
                                           choices = c("Mean", 
                                                       "Naïve", 
-                                                      "Seasonal Naïve")),
+                                                      "Seasonal Naïve", 
+                                                      "Drift")),
                              
                              hr(),
                              
                              
-                             plotOutput("forecast")
+                             plotOutput("forecast_simple")
                              
                              
                              
@@ -237,8 +246,8 @@ server <- function(input, output, session) {
     
   })
   
-  output$forecast <- renderPlot({
-    if(input$forecast_type == "Mean") {
+  output$forecast_simple <- renderPlot({
+    if(input$forecast_simpletype == "Mean") {
     interest_fit <- g_trends %>%
       model(
         Mean = MEAN(Interest)
@@ -259,7 +268,7 @@ server <- function(input, output, session) {
       ggeasy::easy_center_title()+
       ggeasy::easy_all_text_color(color = "#22afff")
     }
-    else if(input$forecast_type == "Naïve") {
+    else if(input$forecast_simpletype == "Naïve") {
       interest_fit <- g_trends %>%
         model(`Naïve` = NAIVE(Interest)
         )
@@ -280,7 +289,7 @@ server <- function(input, output, session) {
         ggeasy::easy_all_text_color(color = "#22afff")
     }
     
-    else if(input$forecast_type == "Seasonal Naïve") {
+    else if(input$forecast_simpletype == "Seasonal Naïve") {
       interest_fit <- g_trends %>%
         model(`Seasonal naïve` = SNAIVE(Interest)
         )
@@ -300,6 +309,28 @@ server <- function(input, output, session) {
         ggeasy::easy_center_title()+
         ggeasy::easy_all_text_color(color = "#22afff")
     }
+    
+    else if(input$forecast_simpletype == "Drift") {
+      interest_fit <- g_trends %>%
+        model(`Drift` = RW(Interest ~ drift())
+        )
+      
+      interest_fc <- interest_fit %>% forecast(h = 15)
+      
+      interest_fc %>%
+        autoplot(g_trends, level = NULL) +
+        autolayer(
+          filter_index(g_trends, "2004 Jan" ~ .),
+          colour = "#ff8200"
+        ) +
+        labs( y = "Interest",
+              title = "Drift Forecast for interest in \"Tennessee Lady Vols\""
+        ) + 
+        guides(colour = guide_legend(title = "Forecast"))+
+        ggeasy::easy_center_title()+
+        ggeasy::easy_all_text_color(color = "#22afff")
+    }
+    
     
   })
   
